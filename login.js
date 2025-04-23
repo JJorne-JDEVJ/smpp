@@ -1,5 +1,14 @@
 /* vim:set shiftwidth=4: */
 
+function updateLoginPanel() {
+    let login_app_left = document.querySelector('.login-app__left');
+    login_app_left.innerHTML = ' ';
+    document.getElementsByClassName('login-app__platform-indicator')[0].innerHTML = '<h1 class="logintitle">Smartschool ++</h1>';
+    document.getElementsByClassName('login-app__title--separator')[0].innerHTML = `<button type="button" class="white_text_button" id="showmore">More</button>`;
+    document.getElementById('showmore').addEventListener('click', showmore)
+    function showmore() { style.setProperty('--show-options', 'flex'); document.getElementById("showmore").style.display = "none" }
+}
+
 function add_splash_text() {
     var login_app = document.querySelector('.login-app')
     var splash_text_element = document.createElement('div')
@@ -13,7 +22,7 @@ let splashtexts = [
     `404 Splashtext not found`,
     `Don't Smartschool \n and drive kids!`,
     `Home-made!`,
-    `Pythagoras was used in this`,
+    `Pythagoras was used in this`, // where????
     `Like that smash button!`,
     `What DOES the fox say?`,
     `Supercalifragilisticexpialidocious!`,
@@ -24,7 +33,7 @@ let splashtexts = [
     `Doesn't contain nuts!`,
     `Glutenfree!!!`,
     `Colorblind approved!`,
-    `Not vegan!`,
+    `Not vegan!`, // :O
     `Never gonna give you up ;)`,
     `The cake is a lie!`,
     `I know what you did...`,
@@ -82,6 +91,7 @@ let splashtexts = [
     undefined,
     `Is tHaT A JOjO ReFEreNce?`,
     `https://ldev.eu.org`,
+    `https://smartschoolplusplus.com`,
     `weak fingers`,
     `Beep beep I'm a sheep`,
     `I love yavascript !`,
@@ -96,7 +106,9 @@ let splashtexts = [
     `Nobody expects the \n Spanish Inquisition!`,
     `Beans Beans Beans!`,
     `Baby Shark, doo-doo, \n doo-doo, doo-doo`,
-    `Brood int frans`
+    `Brood int frans`,
+    `CORS >:(`,
+    `We have a discord!`
 ]
 function get_splash_text() {
     return splashtexts[Math.floor(Math.random() * splashtexts.length)]

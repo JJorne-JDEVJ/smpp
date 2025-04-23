@@ -146,6 +146,14 @@ function scrape_goto() {
 function do_qm(opener = "") {
   let cmd_list = quick_cmd_list().concat(goto_items).concat(vakken).concat(links.concat(["home", "dmenu config", "quick add", "quick remove", "config", "toggle fancy scores", "unbloat", "clearsettings", "discord", "toggle performance mode", "dizzy"]));
 
+  let role = document.doBlackMagic ? document.doBlackMagic() : "User" //Gebruik black magic om de global chat role te krijgen.
+  switch (role) {
+    case "Admin":
+      cmd_list.push("gc proffilter"); // Fall trough and also add gcadmin
+    case "Mod":
+      cmd_list.push("gcadmin");
+  }
+
   dmenu(cmd_list, function (cmd) {
     switch (cmd) {
       case "unbloat":
@@ -189,6 +197,12 @@ function do_qm(opener = "") {
         return;
       case "toggle performance mode":
         togglePerformanceMode();
+        return;
+      case "gcadmin":
+        open_url("https://gc.smartschoolplusplus.com/admin");
+        return;
+      case "gc proffilter":
+        open_url("https://gc.smartschoolplusplus.com/admin/prof");
         return;
       case "dizzy":
         const styleEl = document.createElement("style");
@@ -240,7 +254,6 @@ document.addEventListener("keyup", function (e) {
 });
 
 function createQuickMenuButton() {
-  const topNav = document.querySelector("nav.topnav")
 
   const quickButton = document.createElement("button");
   quickButton.title="Quick menu (je kan ook : gebruiken om het quick te openen)"
@@ -251,6 +264,6 @@ function createQuickMenuButton() {
     do_qm(quickButton);
   });
 
-  topNav.insertBefore(quickButton, topNav.childNodes[2]);
+  return quickButton;
 }
 
