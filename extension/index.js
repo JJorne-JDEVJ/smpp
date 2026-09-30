@@ -5973,6 +5973,18 @@ Is it scaring you off?`,
           break;
         }
         case "widgets": {
+          const showClockSecondsButton = document.getElementById(
+            "settings-page-clock-seconds-button"
+          );
+          if (showClockSecondsButton) {
+            showClockSecondsButton.checked = await getWidgetSetting("ClockWidget.showSecondsDial");
+          }
+          const showClockDigitalButton = document.getElementById(
+            "settings-page-clock-digital-button"
+          );
+          if (showClockDigitalButton) {
+            showClockDigitalButton.checked = await getWidgetSetting("ClockWidget.showDigitalClock");
+          }
           const delijnMonochromeButton = document.getElementById(
             "settings-page-delijn-monochrome-button"
           );
@@ -6177,6 +6189,16 @@ Is it scaring you off?`,
               await setWidgetSetting(settingName, currentValue);
             }
           };
+          await updateWidgetSetting(
+            "settings-page-clock-seconds-button",
+            "ClockWidget.showSecondsDial",
+            "boolean"
+          );
+          await updateWidgetSetting(
+            "settings-page-clock-digital-button",
+            "ClockWidget.showDigitalClock",
+            "boolean"
+          );
           await updateWidgetSetting(
             "settings-page-delijn-monochrome-button",
             "DelijnWidget.monochrome",
@@ -6657,6 +6679,22 @@ Is it scaring you off?`,
           break;
         case "widgets":
           this.settingsPage.appendChild(createMainTitle("Widgets"));
+          this.settingsPage.appendChild(createSectionTitle("Clock"));
+          this.settingsPage.appendChild(
+            createDescription("Change the clock configuration.")
+          );
+          this.settingsPage.appendChild(
+            createSettingsButtonWithLabel(
+              "settings-page-clock-seconds-button",
+              "Seconds dial"
+            )
+          );
+          this.settingsPage.appendChild(
+            createSettingsButtonWithLabel(
+              "settings-page-clock-digital-button",
+              "Digital clock"
+            )
+          );
           this.settingsPage.appendChild(createSectionTitle("De Lijn"));
           this.settingsPage.appendChild(
             createDescription("Change the De Lijn app configuration.")
@@ -14708,60 +14746,93 @@ ${code}`;
     get name() {
       return "ClockWidget";
     }
+    defaultSettings() {
+      return {
+        showSecondsDial: true,
+        showDigitalClock: true
+      };
+    }
+    onSettingsChange() {
+      const secondsDial = this.element.querySelector(".rotatingSec");
+      const digitalClock = this.element.querySelector(".clock-bottom");
+      if (secondsDial) {
+        secondsDial.classList.toggle(
+          "clock-seconds-hidden",
+          !this.settings.showSecondsDial
+        );
+      }
+      if (digitalClock) digitalClock.hidden = !this.settings.showDigitalClock;
+    }
     async createContent() {
-      this.element.classList.add("smpp-widget-transparent");
       let clockContainer = document.createElement("div");
+      clockContainer.classList.add("smpp-widget-transparent");
       clockContainer.classList.add("clock-widget");
-      let container = document.createElement("div");
-      container.classList.add("clock-container");
-      clockContainer.appendChild(container);
-      let clockFace = document.createElement("div");
-      clockFace.classList.add("clock-face");
-      container.appendChild(clockFace);
-      let minuteHand = document.createElement("div");
-      minuteHand.classList.add("clock-hand", "minute-hand");
-      clockFace.appendChild(minuteHand);
-      let hourHand = document.createElement("div");
-      hourHand.classList.add("clock-hand", "hour-hand");
-      clockFace.appendChild(hourHand);
-      let secondHand = document.createElement("div");
-      secondHand.classList.add("clock-hand", "second-hand");
-      clockFace.appendChild(secondHand);
-      const centerCircle = document.createElement("div");
-      centerCircle.classList.add("clock-center");
-      clockFace.appendChild(centerCircle);
+      clockContainer.innerHTML = `
+      <div class="mid"></div>
+      <div class="midCover"></div>
+      <div class="backdrop"></div>
+      <div>
+        <div class='rotatingSec wijzer ${this.settings.showSecondsDial ? "" : "clock-seconds-hidden"}'></div>
+        <div class='rotatingMin wijzer'></div>
+        <div class='rotatingHour wijzer'></div>
+      </div>`;
+      function setAnimPosition(selector, seconds) {
+        var anim = clockContainer.querySelector(selector)?.getAnimations()[0];
+        if (anim) anim.currentTime = seconds * 1e3;
+      }
+      function updateClock() {
+        var now2 = /* @__PURE__ */ new Date();
+        var secs = now2.getSeconds() + now2.getMilliseconds() / 1e3;
+        var mins = now2.getMinutes() * 60 + secs;
+        var hours = now2.getHours() % 12 * 3600 + mins;
+        setAnimPosition(".rotatingSec", secs);
+        setAnimPosition(".rotatingMin", mins);
+        setAnimPosition(".rotatingHour", hours);
+        return 1;
+      }
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) updateClock();
+      });
+      const interval = setInterval(function() {
+        if (!document.hidden) updateClock();
+      }, 1e4);
+      const tempInterval = setInterval(function() {
+        if (!document.hidden) {
+          if (updateClock()) {
+            clearInterval(tempInterval);
+          }
+          ;
+        }
+      }, 1e3);
       let bottomContainer = document.createElement("div");
       bottomContainer.classList.add("clock-bottom");
-      container.appendChild(bottomContainer);
+      bottomContainer.hidden = !this.settings.showDigitalClock;
+      clockContainer.appendChild(bottomContainer);
       let timeEl = document.createElement("div");
       timeEl.classList.add("digital-time");
-      timeEl.innerText = "00:00";
+      timeEl.innerText = "??:??";
       bottomContainer.appendChild(timeEl);
-      const update = () => {
-        const now = /* @__PURE__ */ new Date();
-        const hours = now.getHours();
-        const minutes = now.getMinutes();
-        const seconds = now.getSeconds();
-        const milliseconds = now.getMilliseconds();
-        const timeText = (hours < 10 ? "0" : "") + hours + ":" + (minutes < 10 ? "0" : "") + minutes;
-        if (timeEl.innerText != timeText) {
-          timeEl.innerText = timeText;
+      clockContainer.appendChild(bottomContainer);
+      function updateDigiClock() {
+        var now2 = /* @__PURE__ */ new Date();
+        var hours = now2.getHours();
+        var minutes = now2.getMinutes();
+        timeEl.innerText = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+      }
+      var now = /* @__PURE__ */ new Date();
+      var delay2 = (now.getSeconds() * 1e3 + now.getMilliseconds()) % 6e4;
+      const tempIntervalDigi = setInterval(function() {
+        if (!document.hidden) {
+          updateDigiClock();
+          clearInterval(tempIntervalDigi2);
+          const tempIntervalDigi2 = setInterval(function() {
+            if (!document.hidden) {
+              updateDigiClock();
+            }
+          }, 6e4);
         }
-        const totalSeconds = hours * 3600 + minutes * 60 + seconds + milliseconds / 1e3;
-        const totalMinutes = hours * 60 + minutes + seconds / 60 + milliseconds / (1e3 * 60);
-        const totalHours = hours + minutes / 60 + seconds / (60 * 60) + milliseconds / (1e3 * 60 * 60);
-        let secondsAngle = totalSeconds * 6;
-        let minutesAngle = totalMinutes * 6;
-        let hoursAngle = totalHours * 30;
-        if (secondsAngle > 270) secondsAngle -= 360;
-        if (minutesAngle > 270) minutesAngle -= 360;
-        if (hoursAngle > 270) hoursAngle -= 360;
-        secondHand.style.transform = `translate(-50%, -100%) rotate(${secondsAngle}deg)`;
-        minuteHand.style.transform = `translate(-50%, -100%) rotate(${minutesAngle}deg)`;
-        hourHand.style.transform = `translate(-50%, -100%) rotate(${hoursAngle}deg)`;
-        requestAnimationFrame(update);
-      };
-      requestAnimationFrame(update);
+      }, delay2);
+      updateDigiClock();
       return clockContainer;
     }
     async createPreview() {

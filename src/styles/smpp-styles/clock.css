@@ -1,3 +1,105 @@
+/* fun fact: "cqmin" is relatief (1% van de dunste kant van de div dat het in is). */
+.clock-widget {
+  position: relative;
+  isolation: isolate;
+  container-type: size;
+  width: auto;
+  aspect-ratio: 1 / 1;
+  background-color: #46464646;
+  border-radius: 15%;
+  overflow: hidden;
+}
+
+.wijzer {
+  width: 45cqmin;
+  height: 6cqmin;
+  transform-origin: left center;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 10cqmin;
+  border: 0.8cqmin solid black;
+  border-left: 0px solid black;
+}
+
+.mid {
+  position: absolute;
+  transform-origin: center;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  
+  background-color: var(--color-accent);
+  width: 8cqmin;
+  height: 8cqmin;
+  border-radius: 50%;
+  z-index: 5;
+  border: 0.8cqmin solid black;
+}
+
+.midCover {
+  position: absolute;
+  transform-origin: center;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  
+  background-color: var(--color-accent);
+  width: 8cqmin;
+  height: 8cqmin;
+  border-radius: 50%;
+  z-index: 6;
+}
+
+.backdrop{
+  position: absolute;
+  transform-origin: center;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  
+  background-color: rgba(0,0, 0, 0.25);
+  width: 100cqmin;
+  height: 100cqmin;
+  z-index: 0;
+  border-radius: 20cqmin;
+}
+
+@keyframes rotating {
+    from {
+        transform: translateY(-50%) rotate(-90deg);
+    }
+    to {
+        transform: translateY(-50%) rotate(270deg);
+    }
+}
+
+.rotatingSec {
+    animation: rotating 60s linear infinite;
+    background-color: var(--color-accent);
+    height: 3cqmin;
+    z-index: 5;
+}
+
+.rotatingSec.clock-seconds-hidden {
+  visibility: hidden;
+}
+
+.rotatingMin {
+    animation: rotating 3600s linear infinite;
+    background-color: var(--color-base03);
+    z-index: 4;
+}
+
+.rotatingHour {
+    animation: rotating 43200s linear infinite;
+    background-color: var(--color-base02);
+    z-index: 3;
+    width: 30cqmin;
+}
+
+/* ############################################################################ */
+
 .clock-widget,
 .clock-widget-preview {
   display: flex;
@@ -75,40 +177,6 @@
   background-color: var(--darken-background);
   aspect-ratio: 1;
   position: relative;
-}
-
-/* put pivot at the center, then move the element so its bottom is exactly there */
-.clock-hand {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform-origin: 50% 100%; /* bottom center */
-  transform: translate(-50%, -100%) rotate(0deg);
-  width: 1rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 0 30px 4px var(--color-shadow);
-
-  /* No transition because hands are updated every frame and transitions cause hands to spin when tab is unloaded*/
-  transition: none;
-}
-
-/* lengths expressed as percentage of the face's size */
-.hour-hand {
-  height: 30%;
-  /*opacity: 0.8;*/
-  z-index: -3;
-} /* shorter */
-
-.minute-hand {
-  height: 42.5%;
-  z-index: -2;
-}
-
-.second-hand {
-  height: 45%;
-  width: 0.5rem; /* thinner */
-  transform-origin: 50% 100%; /* still bottom center */
-  z-index: -1;
 }
 
 .smpp-widget-preview .hour-hand {

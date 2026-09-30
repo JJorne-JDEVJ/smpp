@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { WidgetBase, registerWidget } from "./widgets.js";
 
-// gemaakt door Lou (Flying_dinonugget) analog clock gestolen van Lukaz.vb
+// Rework betereKlok door JJorne, origineel was door Lou en Lukas
 class ClockWidget extends WidgetBase {
   #interval;
 
@@ -13,93 +13,110 @@ class ClockWidget extends WidgetBase {
     return "ClockWidget";
   }
 
+  override defaultSettings() {
+    return {
+      showSecondsDial: true,
+      showDigitalClock: true,
+    };
+  }
+
+  override onSettingsChange() {
+    const secondsDial = this.element.querySelector(".rotatingSec");
+    const digitalClock = this.element.querySelector(".clock-bottom");
+    if (secondsDial) {
+      secondsDial.classList.toggle(
+        "clock-seconds-hidden",
+        !this.settings.showSecondsDial
+      );
+    }
+    if (digitalClock) digitalClock.hidden = !this.settings.showDigitalClock;
+  }
+
   async createContent() {
-    this.element.classList.add("smpp-widget-transparent");
     let clockContainer = document.createElement("div");
+    clockContainer.classList.add("smpp-widget-transparent");
     clockContainer.classList.add("clock-widget");
 
-    let container = document.createElement("div");
-    container.classList.add("clock-container");
-    clockContainer.appendChild(container);
+    clockContainer.innerHTML = `
+      <div class="mid"></div>
+      <div class="midCover"></div>
+      <div class="backdrop"></div>
+      <div>
+        <div class='rotatingSec wijzer ${this.settings.showSecondsDial ? "" : "clock-seconds-hidden"}'></div>
+        <div class='rotatingMin wijzer'></div>
+        <div class='rotatingHour wijzer'></div>
+      </div>`;
 
-    let clockFace = document.createElement("div");
-    clockFace.classList.add("clock-face");
-    container.appendChild(clockFace);
+    function setAnimPosition(selector, seconds) {
+      var anim = clockContainer.querySelector(selector)?.getAnimations()[0];
+      if (anim) anim.currentTime = seconds * 1000;
+    }
 
-    let minuteHand = document.createElement("div");
-    minuteHand.classList.add("clock-hand", "minute-hand");
-    clockFace.appendChild(minuteHand);
+    function updateClock() {
+      var now = new Date();
 
-    let hourHand = document.createElement("div");
-    hourHand.classList.add("clock-hand", "hour-hand");
-    clockFace.appendChild(hourHand);
+      var secs = now.getSeconds() + now.getMilliseconds() / 1000;
+      var mins = now.getMinutes() * 60 + secs;
+      var hours = (now.getHours() % 12) * 3600 + mins;
 
-    let secondHand = document.createElement("div");
-    secondHand.classList.add("clock-hand", "second-hand");
-    clockFace.appendChild(secondHand);
+      setAnimPosition(".rotatingSec", secs);
+      setAnimPosition(".rotatingMin", mins);
+      setAnimPosition(".rotatingHour", hours);
+      return 1;
+    }
 
-    const centerCircle = document.createElement("div");
-    centerCircle.classList.add("clock-center");
-    clockFace.appendChild(centerCircle);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) updateClock();
+    });
 
+    const interval = setInterval(function () {
+      if (!document.hidden) updateClock();
+    }, 10000);
+
+    const tempInterval = setInterval(function () {
+      if (!document.hidden){
+        if (updateClock()){clearInterval(tempInterval);};
+      }
+    }, 1000);
+
+    // digital part
     let bottomContainer = document.createElement("div");
     bottomContainer.classList.add("clock-bottom");
-    container.appendChild(bottomContainer);
+    bottomContainer.hidden = !this.settings.showDigitalClock;
+    clockContainer.appendChild(bottomContainer);
 
     let timeEl = document.createElement("div");
     timeEl.classList.add("digital-time");
-    timeEl.innerText = "00:00";
+    timeEl.innerText = "??:??";
     bottomContainer.appendChild(timeEl);
 
-    const update = () => {
-      const now = new Date();
-      const hours = now.getHours();
-      const minutes = now.getMinutes();
-      const seconds = now.getSeconds();
-      const milliseconds = now.getMilliseconds();
+    clockContainer.appendChild(bottomContainer);
 
-      const timeText =
-        (hours < 10 ? "0" : "") +
-        hours +
-        ":" +
-        (minutes < 10 ? "0" : "") +
-        minutes;
-      if (timeEl.innerText != timeText) {
-        // only update the time if it has changed. This allows the time text to be selected and has possibly better performance
-        timeEl.innerText = timeText;
+    function updateDigiClock() {
+      var now = new Date();
+      var hours = now.getHours();
+      var minutes = now.getMinutes();
+      timeEl.innerText = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+    }
+
+    var now = new Date();
+    var delay = (now.getSeconds()*1000 + now.getMilliseconds()) % 60000;
+    const tempIntervalDigi = setInterval(function () {
+      if (!document.hidden){
+        updateDigiClock();
+        clearInterval(tempIntervalDigi);
+        const tempIntervalDigi = setInterval(function () {
+          if (!document.hidden){
+          updateDigiClock();
+        }},60000);
       }
-
-      const totalSeconds =
-        hours * 3600 + minutes * 60 + seconds + milliseconds / 1000;
-      const totalMinutes =
-        hours * 60 + minutes + seconds / 60 + milliseconds / (1000 * 60);
-      const totalHours =
-        hours +
-        minutes / 60 +
-        seconds / (60 * 60) +
-        milliseconds / (1000 * 60 * 60);
-
-      let secondsAngle = totalSeconds * 6;
-      let minutesAngle = totalMinutes * 6;
-      let hoursAngle = totalHours * 30;
-
-      if (secondsAngle > 270) secondsAngle -= 360;
-      if (minutesAngle > 270) minutesAngle -= 360;
-      if (hoursAngle > 270) hoursAngle -= 360;
-
-      secondHand.style.transform = `translate(-50%, -100%) rotate(${secondsAngle}deg)`;
-      minuteHand.style.transform = `translate(-50%, -100%) rotate(${minutesAngle}deg)`;
-      hourHand.style.transform = `translate(-50%, -100%) rotate(${hoursAngle}deg)`;
-
-      requestAnimationFrame(update);
-    };
-
-    requestAnimationFrame(update);
-
+    }, delay);
+    updateDigiClock();
     return clockContainer;
   }
 
   async createPreview() {
+    // dit is identiek tot de originele preview code voor de redo
     let div = document.createElement("div");
     div.classList.add("clock-widget-preview");
 

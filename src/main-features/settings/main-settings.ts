@@ -525,6 +525,23 @@ export class SettingsWindow extends BaseWindow {
       }
 
       case "widgets": {
+        // Klok
+        const showClockSecondsButton = document.getElementById(
+          "settings-page-clock-seconds-button"
+        );
+        if (showClockSecondsButton) {
+          (showClockSecondsButton as HTMLInputElement).checked =
+            await getWidgetSetting("ClockWidget.showSecondsDial");
+        }
+
+        const showClockDigitalButton = document.getElementById(
+          "settings-page-clock-digital-button"
+        );
+        if (showClockDigitalButton) {
+          (showClockDigitalButton as HTMLInputElement).checked =
+            await getWidgetSetting("ClockWidget.showDigitalClock");
+        }
+
         // De Lijn
         const delijnMonochromeButton = document.getElementById(
           "settings-page-delijn-monochrome-button"
@@ -810,6 +827,19 @@ export class SettingsWindow extends BaseWindow {
             await setWidgetSetting(settingName, currentValue);
           }
         };
+
+        // Clock
+        await updateWidgetSetting(
+          "settings-page-clock-seconds-button",
+          "ClockWidget.showSecondsDial",
+          "boolean"
+        );
+
+        await updateWidgetSetting(
+          "settings-page-clock-digital-button",
+          "ClockWidget.showDigitalClock",
+          "boolean"
+        );
 
         // Delijn
         await updateWidgetSetting(
@@ -1402,6 +1432,23 @@ export class SettingsWindow extends BaseWindow {
         break;
       case "widgets":
         this.settingsPage.appendChild(createMainTitle("Widgets"));
+
+        this.settingsPage.appendChild(createSectionTitle("Clock"));
+        this.settingsPage.appendChild(
+          createDescription("Change the clock configuration.")
+        );
+        this.settingsPage.appendChild(
+          createSettingsButtonWithLabel(
+            "settings-page-clock-seconds-button",
+            "Seconds dial"
+          )
+        );
+        this.settingsPage.appendChild(
+          createSettingsButtonWithLabel(
+            "settings-page-clock-digital-button",
+            "Digital clock"
+          )
+        );
 
         this.settingsPage.appendChild(createSectionTitle("De Lijn"));
         this.settingsPage.appendChild(
