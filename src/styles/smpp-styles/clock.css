@@ -62,7 +62,7 @@
   width: 100cqmin;
   height: 100cqmin;
   z-index: 0;
-  border-radius: 20cqmin;
+  border-radius: var(--clock-backdrop-radius, 20%);
 }
 
 @keyframes rotating {

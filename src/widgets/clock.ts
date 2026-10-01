@@ -17,25 +17,42 @@ class ClockWidget extends WidgetBase {
     return {
       showSecondsDial: true,
       showDigitalClock: true,
+      showClockBG: true,
+      backdropRadius: 100,
     };
   }
 
   override onSettingsChange() {
     const secondsDial = this.element.querySelector(".rotatingSec");
-    const digitalClock = this.element.querySelector(".clock-bottom");
     if (secondsDial) {
       secondsDial.classList.toggle(
         "clock-seconds-hidden",
         !this.settings.showSecondsDial
       );
     }
-    if (digitalClock) digitalClock.hidden = !this.settings.showDigitalClock;
+
+    const digitalClock = this.element.querySelector(".clock-bottom");
+    if (digitalClock) {
+      digitalClock.hidden = !this.settings.showDigitalClock;
+    }
+    
+    const backdrop = this.element.querySelector(".backdrop");
+    if (backdrop) {
+      backdrop.style.setProperty(
+        "--clock-backdrop-radius",
+        `${this.settings.backdropRadius / 2}%`
+      );
+    }
   }
 
   async createContent() {
     let clockContainer = document.createElement("div");
     clockContainer.classList.add("smpp-widget-transparent");
     clockContainer.classList.add("clock-widget");
+    clockContainer.style.setProperty(
+      "--clock-backdrop-radius",
+      `${this.settings.backdropRadius / 2}%`
+    );
 
     clockContainer.innerHTML = `
       <div class="mid"></div>
@@ -74,7 +91,7 @@ class ClockWidget extends WidgetBase {
     }, 10000);
 
     const tempInterval = setInterval(function () {
-      if (!document.hidden){
+      if (!document.hidden && document.querySelector(".rotatingSec")?.getAnimations()[0]) {
         if (updateClock()){clearInterval(tempInterval);};
       }
     }, 1000);

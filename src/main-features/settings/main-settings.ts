@@ -542,6 +542,11 @@ export class SettingsWindow extends BaseWindow {
             await getWidgetSetting("ClockWidget.showDigitalClock");
         }
 
+        await loadWidgetSettingSlider(
+          "settings-page-clock-backdrop-radius-slider",
+          "ClockWidget.backdropRadius"
+        );
+
         // De Lijn
         const delijnMonochromeButton = document.getElementById(
           "settings-page-delijn-monochrome-button"
@@ -839,6 +844,12 @@ export class SettingsWindow extends BaseWindow {
           "settings-page-clock-digital-button",
           "ClockWidget.showDigitalClock",
           "boolean"
+        );
+
+        await updateWidgetSetting(
+          "settings-page-clock-backdrop-radius-slider",
+          "ClockWidget.backdropRadius",
+          "number"
         );
 
         // Delijn
@@ -1447,6 +1458,14 @@ export class SettingsWindow extends BaseWindow {
           createSettingsButtonWithLabel(
             "settings-page-clock-digital-button",
             "Digital clock"
+          )
+        );
+        this.settingsPage.appendChild(
+          createLabeledSlider(
+            "0",
+            "100",
+            "settings-page-clock-backdrop-radius-slider",
+            "Backdrop bevel (%)"
           )
         );
 

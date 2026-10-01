@@ -5985,6 +5985,10 @@ Is it scaring you off?`,
           if (showClockDigitalButton) {
             showClockDigitalButton.checked = await getWidgetSetting("ClockWidget.showDigitalClock");
           }
+          await loadWidgetSettingSlider(
+            "settings-page-clock-backdrop-radius-slider",
+            "ClockWidget.backdropRadius"
+          );
           const delijnMonochromeButton = document.getElementById(
             "settings-page-delijn-monochrome-button"
           );
@@ -6198,6 +6202,11 @@ Is it scaring you off?`,
             "settings-page-clock-digital-button",
             "ClockWidget.showDigitalClock",
             "boolean"
+          );
+          await updateWidgetSetting(
+            "settings-page-clock-backdrop-radius-slider",
+            "ClockWidget.backdropRadius",
+            "number"
           );
           await updateWidgetSetting(
             "settings-page-delijn-monochrome-button",
@@ -6693,6 +6702,14 @@ Is it scaring you off?`,
             createSettingsButtonWithLabel(
               "settings-page-clock-digital-button",
               "Digital clock"
+            )
+          );
+          this.settingsPage.appendChild(
+            createLabeledSlider(
+              "0",
+              "100",
+              "settings-page-clock-backdrop-radius-slider",
+              "Backdrop bevel (0-100)"
             )
           );
           this.settingsPage.appendChild(createSectionTitle("De Lijn"));
@@ -14749,24 +14766,39 @@ ${code}`;
     defaultSettings() {
       return {
         showSecondsDial: true,
-        showDigitalClock: true
+        showDigitalClock: true,
+        showClockBG: true,
+        backdropRadius: 100
       };
     }
     onSettingsChange() {
       const secondsDial = this.element.querySelector(".rotatingSec");
-      const digitalClock = this.element.querySelector(".clock-bottom");
       if (secondsDial) {
         secondsDial.classList.toggle(
           "clock-seconds-hidden",
           !this.settings.showSecondsDial
         );
       }
-      if (digitalClock) digitalClock.hidden = !this.settings.showDigitalClock;
+      const digitalClock = this.element.querySelector(".clock-bottom");
+      if (digitalClock) {
+        digitalClock.hidden = !this.settings.showDigitalClock;
+      }
+      const backdrop = this.element.querySelector(".backdrop");
+      if (backdrop) {
+        backdrop.style.setProperty(
+          "--clock-backdrop-radius",
+          `${this.settings.backdropRadius / 2}%`
+        );
+      }
     }
     async createContent() {
       let clockContainer = document.createElement("div");
       clockContainer.classList.add("smpp-widget-transparent");
       clockContainer.classList.add("clock-widget");
+      clockContainer.style.setProperty(
+        "--clock-backdrop-radius",
+        `${this.settings.backdropRadius / 2}%`
+      );
       clockContainer.innerHTML = `
       <div class="mid"></div>
       <div class="midCover"></div>
@@ -14797,7 +14829,7 @@ ${code}`;
         if (!document.hidden) updateClock();
       }, 1e4);
       const tempInterval = setInterval(function() {
-        if (!document.hidden) {
+        if (!document.hidden && document.querySelector(".rotatingSec")?.getAnimations()[0]) {
           if (updateClock()) {
             clearInterval(tempInterval);
           }
